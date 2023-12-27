@@ -9,7 +9,7 @@
         ''()
         `(cons ,(car xs) ,(spell-the-conses (cdr xs))))))
 
-(define (barliman-filler fun-name formals io* . options)
+(define (barliman-helper partial-success? n fun-name formals io* . options)
   (let* ((inputs (map car io*))
          (outputs (map cadr io*)))
     (define (ans)
@@ -27,20 +27,25 @@
              ;; makes the search incomplete to restrict on whole io*
              ;; trade-offs are worth thinking about
              succeed)))
-        (run 1 (q)
-          (absento 'if q)
-          (absento 'cond q)
-          (absento 'letrec q)
+        (run n (q)
+          (absento 'match q)
           (absento-all io* q)
           (evalo `(begin
                     (define ,fun-name (lambda ,formals ,q))
                     ,(spell-the-conses inputs))
                  outputs)))
 
+      (set! allow-partial-result? partial-success?)
       (let ((results-fast (begin (set! allow-incomplete-search? #t) (results))))
         (if (null? results-fast)
             (begin (set! allow-incomplete-search? #f) (results))
             results-fast)))
 
     (ans)))
+
+(define (barliman-filler fun-name formals io* . options)
+  (apply barliman-helper #f 1 fun-name formals io* options))
+
+(define (barliman-partial-programs n fun-name formals io* . options)
+  (apply barliman-helper #t n fun-name formals io* options))
 
