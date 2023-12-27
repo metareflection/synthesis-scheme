@@ -1,3 +1,10 @@
+(define (hole? e)
+  (and (symbol? e)
+       (let ((s (string->list (symbol->string e))))
+         (and (not (null? s)) (eq? #\_ (car s))
+              (not (null? (cdr s))) (eq? #\. (cadr s))
+              (not (null? (cddr s)))))))
+
 (define lambda-params cadr)
 (define lambda-body caddr)
 
@@ -36,12 +43,12 @@
                   (or (symbol? params)
                       (= (length params) (length args))))))))
 
-(define (my-apply f args)
+(define (my-apply k f args)
   (cond
     ((primitive? f)
      (apply (primitive-proc f) args))
     ((closure? f)
-     (eval-expr
+     (eval-expr k
       (closure-body f)
       (let ((params (closure-formals f)))
         (append
@@ -81,11 +88,15 @@
    (add-binding-prim 'negative? negative?)
    (add-binding-prim 'even? even?)
    (add-binding-prim 'odd? odd?)
-   (add-binding-prim 'apply my-apply)
+   (add-binding-prim 'apply (lambda (f args) (my-apply (lambda (x) x) f args)))
    ))
 
-(define (eval-expr expr env)
+(define HOLE '(UNKNOWN))
+
+(define (eval-expr k expr env)
   (cond
+    ((hole? expr)
+     (k HOLE))
     ((boolean? expr)
      expr)
     ((number? expr)
@@ -95,17 +106,17 @@
     ((tagged-expr? 'quote expr)
      (cadr expr))
     ((tagged-expr? 'if expr)
-     (if (eval-expr (cadr expr) env)
-         (eval-expr (caddr expr) env)
-         (eval-expr (cadddr expr) env)))
+     (if (eval-expr k (cadr expr) env)
+         (eval-expr k (caddr expr) env)
+         (eval-expr k (cadddr expr) env)))
     ((tagged-expr? 'cond expr)
      (cond
        ((null? (cdr expr))
         (error 'eval-expr "cond expression with no cases"))
        ((eq? (caadr expr) 'else)
-        (eval-expr (cadadr expr) env))
+        (eval-expr k (cadadr expr) env))
        (else
-        (eval-expr
+        (eval-expr k
          `(if ,(caadr expr)
               ,(cadadr expr)
               (cond ,@(cddr expr)))
@@ -113,15 +124,15 @@
     ((tagged-expr? 'and expr)
      (if (null? (cdr expr))
          #t
-         (and (eval-expr (cadr expr) env)
-              (eval-expr `(and ,@(cddr expr)) env))))
+         (and (eval-expr k (cadr expr) env)
+              (eval-expr k `(and ,@(cddr expr)) env))))
     ((tagged-expr? 'or expr)
      (if (null? (cdr expr))
          #f
-         (or (eval-expr (cadr expr) env)
-             (eval-expr `(or ,@(cddr expr)) env))))
+         (or (eval-expr k (cadr expr) env)
+             (eval-expr k `(or ,@(cddr expr)) env))))
     ((tagged-expr? 'assert expr)
-     (let ((r (eval-expr (cadr expr) env)))
+     (let ((r (eval-expr k (cadr expr) env)))
        (if r
            r
            (error 'eval-expr "assertion failed" expr))))
@@ -130,19 +141,19 @@
     ((tagged-expr? 'let expr)
      (let ((bindings (cadr expr))
            (body (caddr expr)))
-       (eval-expr
+       (eval-expr k
         body
         (append
-         (map (lambda (b) (add-binding (car b) (eval-expr (cadr b) env))) bindings)
+         (map (lambda (b) (add-binding (car b) (eval-expr k (cadr b) env))) bindings)
          env))))
     ((tagged-expr? 'letrec expr)
-     (eval-expr
+     (eval-expr k
       (letrec-body expr)
       (cons (cons (letrec-name expr) (cons 'rec (letrec-lambda expr))) env)))
     ((pair? expr)
-     (let ((f (eval-expr (car expr) env))
-           (args (map (lambda (e) (eval-expr e env)) (cdr expr))))
-       (my-apply f args)))
+     (let ((f (eval-expr k (car expr) env))
+           (args (map (lambda (e) (eval-expr k e env)) (cdr expr))))
+       (my-apply k f args)))
     (else (error 'eval-expr "unexpected expression" expr))))
 
 (define (lookup x env)
@@ -158,7 +169,9 @@
         (error 'lookup "unbound variable" x))))
 
 (define (my-eval expr)
-  (eval-expr expr global-env))
+  (call/cc
+   (lambda (k)
+     (eval-expr k expr global-env))))
 
 (define (make-my-closure expr env)
   (make-closure

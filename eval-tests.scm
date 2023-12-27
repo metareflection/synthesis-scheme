@@ -1,4 +1,34 @@
 (test
+  (hole? '_.0)
+  #t)
+
+(test
+  (hole? 'a)
+  #f)
+
+(test
+  (my-eval
+   '(letrec ((foo
+              (lambda (n)
+                (if (= n 0)
+                    1
+                    _.0))))
+      (foo 0))
+   )
+  1)
+
+(test
+  (my-eval
+   '(letrec ((foo
+              (lambda (n)
+                (if (= n 0)
+                    1
+                    _.0))))
+      (foo 10))
+   )
+  HOLE)
+
+(test
   (lambda-params '(lambda (x) body))
   '(x))
 
@@ -7,43 +37,39 @@
   'body)
 
 (test
-  (eval-expr '2 global-env)
+  (my-eval '2)
   2)
 
 (test
-  (eval-expr 2 global-env)
+  (my-eval 2)
   2)
 
 (test
-  (eval-expr '(+ 1 2) global-env)
+  (my-eval '(+ 1 2))
   3)
 
 (test
-  (eval-expr '(+ 1 (+ 2 3)) global-env)
+  (my-eval '(+ 1 (+ 2 3)))
   6)
 
 (test
-  (eval-expr '(quote (hello world)) global-env)
+  (my-eval '(quote (hello world)))
   '(hello world))
 
 (test
-  (eval-expr 'x (list (add-binding 'x 3)))
+  (my-eval '((lambda (x) (+ x 1)) 2))
   3)
 
 (test
-  (eval-expr '((lambda (x) (+ x 1)) 2) global-env)
-  3)
-
-(test
-  (eval-expr '(if #t 1 2) global-env)
+  (my-eval '(if #t 1 2))
   1)
 
 (test
-  (eval-expr '(assert (= (+ 1 2) 3)) global-env)
+  (my-eval '(assert (= (+ 1 2) 3)))
   #t)
 
 (test
-  (eval-expr '(let ((x (+ 1 2)) (y (+ 3 4))) (+ x y)) global-env)
+  (my-eval '(let ((x (+ 1 2)) (y (+ 3 4))) (+ x y)))
   10)
 
 (define ycombinator-term
@@ -61,20 +87,20 @@
              (* n (factorial (- n 1)))))))
 
 (test
-  (eval-expr
+  (my-eval
    (list (list ycombinator-term factorial-term) 6)
-   global-env)
+   )
   720)
 
 (test
-  (eval-expr
+  (my-eval
    '(letrec ((factorial
               (lambda (n)
                 (if (= n 0)
                     1
                     (* n (factorial (- n 1)))))))
       (factorial 6))
-   global-env)
+   )
   720)
 
 (test
