@@ -1,0 +1,3 @@
+[submodule "Barliman"]
+	path = Barliman
+	url = https://github.com/webyrd/Barliman.git
