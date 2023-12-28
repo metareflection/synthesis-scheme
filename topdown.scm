@@ -52,14 +52,19 @@
           (inc-random-choice (cdr xs)))))
 
 (define (random-expressions hole parent fun-name arity formals)
-  (list
-   (inc-random-choice
-    (append
-     formals
-     (map (lambda (fa) (cons (car fa)
-                        (map (lambda (_) (inc-random-choice formals))
-                             (iota (cadr fa)))))
-          (grams-arities #f parent hole))))))
+  (let ((thunk
+         (lambda ()
+           (inc-random-choice
+            (append
+             formals
+             (map (lambda (fa) (cons (car fa)
+                                (map (lambda (_) (inc-random-choice formals))
+                                     (iota (cadr fa)))))
+                  (grams-arities #f parent hole)))))))
+    (list
+     (thunk)
+     ;;(thunk)
+     )))
 
 (define DONE '(DONE))
 
