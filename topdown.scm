@@ -64,13 +64,15 @@
                                (my-eval `(letrec ((,fun-name (lambda ,formals ,e)))
                                            ,input)))))
                   (guard
-                   (x (else (k -2)))
+                   (x (else (k -3)))
                    (let-values (((result ticks completed?)
                                  (run-until-ticks-values 100000000 thunk)))
                      (if completed?
                          (if (eq? result HOLE)
                              HOLE
-                             (equal? result expected))
+                             (if (equal? result expected)
+                                 #t
+                                 (k -2)))
                          (k -1)))))))
             io*))))))
 
