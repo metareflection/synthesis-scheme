@@ -4,3 +4,5 @@
 (load "barliman.scm")
 (load "topdown.scm")
 (load "bottomup.scm")
+(load "template.scm")
+(load "dan.scm")
