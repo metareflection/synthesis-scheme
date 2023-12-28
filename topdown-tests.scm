@@ -18,11 +18,11 @@
   (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y)) '(if (null? (cdr xs)) (car xs) (last _.0)))
   '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
-(todo "last-partial-rec-slow"
+(test
   (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? (cdr xs)) (car xs) _.0))
   '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
-(todo "last-partial-slow"
+(test
  (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? _.0) _.1 (last (cdr xs))))
  '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 

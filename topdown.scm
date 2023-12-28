@@ -66,7 +66,7 @@
                   (guard
                    (x (else (k -3)))
                    (let-values (((result ticks completed?)
-                                 (run-until-ticks-values 100000000 thunk)))
+                                 (run-until-ticks-values 10000000 thunk)))
                      (if completed?
                          (if (eq? result HOLE)
                              HOLE
