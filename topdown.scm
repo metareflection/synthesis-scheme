@@ -1,3 +1,5 @@
+(define rollout? #f)
+
 (define (make-hole i)
   (string->symbol (string-append "_." (number->string i))))
 
@@ -111,6 +113,7 @@
     (or
      (> s1 s2)
      (and
+      rollout?
       (>= s1 0)
       (>= s2 0)
       (= s1 s2)
