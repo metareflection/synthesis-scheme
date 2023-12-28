@@ -18,24 +18,74 @@
    (map (lambda (fa) (cons (car fa) (make-holes (cadr fa)))) arities)
    (list (cons fun-name (make-holes arity)))))
 
+(define (inc-random-choice xs)
+  (if (null? (cdr xs))
+      (car xs)
+      (if (= (random 1) 0)
+          (car xs)
+          (inc-random-choice (cdr xs)))))
+
+(define (random-expressions fun-name arity formals)
+  (list
+   (inc-random-choice
+    (append
+     formals
+     (map (lambda (x) `(car ,x)) formals)
+     (map (lambda (x) `(cdr ,x)) formals)))))
+
 (define DONE '(DONE))
 
+(define (fill-all-holes fun-name arity formals e)
+  ;;(printf "Considering ~a.\n" e)
+  (let ((r (next-steps-f (lambda () (random-expressions fun-name arity formals))
+                         fun-name arity formals e)))
+    (if (eq? DONE r)
+        (list e)
+        (apply append
+               (map (lambda (e) (fill-all-holes fun-name arity formals e)) r)))))
+
 (define (next-steps fun-name arity formals e)
+  (next-steps-f
+   (lambda () (fill-hole fun-name arity formals))
+   fun-name arity formals e))
+
+(define (next-steps-f thunk fun-name arity formals e)
   (cond
     ((hole? e)
-     (fill-hole fun-name arity formals))
+     (thunk))
     ((pair? e)
-     (let ((sa (next-steps fun-name arity formals (car e))))
+     (let ((sa (next-steps-f thunk fun-name arity formals (car e))))
        (if (eq? DONE sa)
-           (let ((sd (next-steps fun-name arity formals (cdr e))))
+           (let ((sd (next-steps-f thunk fun-name arity formals (cdr e))))
              (if (eq? DONE sd)
                  DONE
                  (map (lambda (d) (cons (car e) d)) sd)))
            (map (lambda (a) (cons a (cdr e))) sa))))
     (else DONE)))
 
+(define (compare-candidates es1 es2)
+  (let ((s1 (cadr es1))
+        (s2 (cadr es2)))
+    (or
+     (> s1 s2)
+     (and
+      (>= s1 0)
+      (>= s2 0)
+      (= s1 s2)
+      (> (force (caddr es1)) (force (caddr es2)))))))
+
+(define (find-best candidates so-far)
+  (if (null? candidates)
+      so-far
+      (find-best
+       (cdr candidates)
+       (if (compare-candidates (car candidates) so-far)
+           (car candidates)
+           so-far))))
+
 (define (pick-candidate candidates)
-  (values (car candidates) (cdr candidates)))
+  (let ((x (find-best (cdr candidates) (car candidates))))
+    (values x (remq x candidates))))
 
 (define (candidate-expression c)
   (car c))
@@ -76,10 +126,24 @@
                          (k -1)))))))
             io*))))))
 
+(define (rollout fun-name arity formals io* e)
+  (let ((r (fill-all-holes fun-name arity formals e)))
+    (/
+     (apply
+      +
+      (filter
+       (lambda (x) (> x 0))
+       (map (lambda (e) (evaluate-score fun-name arity formals io* e)) r)))
+     (length r))))
+
 (define (merge-candidates fun-name arity formals io* next-expressions other-candidates)
-  (let ((next-candidates (map (lambda (e) (list e (evaluate-score fun-name arity formals io* e))) next-expressions)))
-    (list-sort (lambda (es1 es2) (> (cadr es1) (cadr es2)))
-               (append other-candidates next-candidates))))
+  (let ((next-candidates
+         (map (lambda (e)
+                (list e
+                      (evaluate-score fun-name arity formals io* e)
+                      (delay (rollout fun-name arity formals io* e))))
+              next-expressions)))
+    (append other-candidates next-candidates)))
 
 (define (synthesize-iter fun-name arity formals io* candidates)
   ;;(printf "Candidates ~a.\n" candidates)
