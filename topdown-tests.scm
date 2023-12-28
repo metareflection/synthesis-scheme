@@ -26,15 +26,13 @@
  (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? _.1) _.2 (last (cdr xs))))
  '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
-(todo
- "last"
+(test
  (synthesize 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z) ((last '(x y z a)) a)))
- 'TODO)
+ '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
-(todo
- "repeat"
+(test
  (synthesize 'repeat 2 '(c xs) '(((repeat 'a '()) ()) ((repeat 'a '(1 2 3)) (a a a))))
- '(if (null? xs) xs (cons c (repeat c (cdr xs))))
+ '(((if (null? xs) xs (cons c (repeat c (cdr xs))))))
  )
 
 (test

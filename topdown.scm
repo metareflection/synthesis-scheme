@@ -26,16 +26,19 @@
      (list 'car 'cdr 'cons))
     ((eq? parent 'cons)
      (list 'car 'cdr))
-    (else (list 'null? 'cons 'car 'cdr 'if))))
+    (else #f)))
+
+(define (grams-arities all? parent hole)
+  (let ((ps (grams parent hole)))
+    (if ps
+        (filter (lambda (pa) (memq (car pa) ps)) arities)
+        (if all? arities '()))))
 
 (define (fill-hole hole parent fun-name arity formals)
   (append
    formals
    (map (lambda (fa) (cons (car fa) (make-holes (cadr fa))))
-        (let ((ps (grams parent hole)))
-          (if ps
-              (filter (lambda (pa) (memq (car pa) ps)) arities)
-              arities)))
+        (grams-arities #t parent hole))
    (list (cons fun-name (make-holes arity)))))
 
 (define (inc-random-choice xs)
@@ -45,11 +48,15 @@
           (car xs)
           (inc-random-choice (cdr xs)))))
 
-(define (random-expressions fun-name arity formals)
-  (append
-   formals
-   (map (lambda (x) `(car ,x)) formals)
-   (map (lambda (x) `(cdr ,x)) formals)))
+(define (random-expressions hole parent fun-name arity formals)
+  (list
+   (inc-random-choice
+    (append
+     formals
+     (map (lambda (fa) (cons (car fa)
+                        (map (lambda (_) (inc-random-choice formals))
+                             (iota (cadr fa)))))
+          (grams-arities #f parent hole))))))
 
 (define DONE '(DONE))
 
@@ -57,7 +64,7 @@
   ;;(printf "Considering ~a.\n" e)
   (let ((r (next-steps-f
             #f
-            (lambda (hole parent) (random-expressions fun-name arity formals))
+            (lambda (hole parent) (random-expressions hole parent fun-name arity formals))
             fun-name arity formals e)))
     (if (eq? DONE r)
         (list e)
