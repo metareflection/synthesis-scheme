@@ -36,7 +36,7 @@
                  outputs)))
 
       (set! allow-partial-result? partial-success?)
-      (let ((results-fast (begin (set! allow-incomplete-search? #t) (results))))
+      (let ((results-fast (if partial-success? '() (begin (set! allow-incomplete-search? #t) (results)))))
         (if (null? results-fast)
             (begin (set! allow-incomplete-search? #f) (results))
             results-fast)))
