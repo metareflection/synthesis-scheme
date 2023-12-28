@@ -31,6 +31,12 @@
  (synthesize 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z) ((last '(x y z a)) a)))
  'TODO)
 
+(todo
+ "repeat"
+ (synthesize 'repeat 2 '(c xs) '(((repeat 'a '()) ()) ((repeat 'a '(1 2 3)) (a a a))))
+ '(if (null? xs) xs (cons c (repeat c (cdr xs))))
+ )
+
 (test
   (synthesize-sketch
    'append 2 '(xs ys)
