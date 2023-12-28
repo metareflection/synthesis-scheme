@@ -7,9 +7,9 @@
 (define arities
   (list
    (list 'null? 1)
-   (list 'cons 2)
    (list 'car 1)
    (list 'cdr 1)
+   (list 'cons 2)
    (list 'if 3)))
 
 (define (grams parent hole)
@@ -22,8 +22,10 @@
      (list 'car 'cdr))
     ((and (eq? parent 'if) (eq? hole '_.1))
      (list 'null?))
-    ((and (eq? parent 'if) (or (eq? hole '_.2) (eq? hole '_.3)))
+    ((and (eq? parent 'if) (eq? hole '_.2))
      (list 'car 'cdr 'cons))
+    ((and (eq? parent 'if) (eq? hole '_.3))
+     (list 'cons 'car 'cdr))
     ((and (eq? parent 'cons) (eq? hole '_.1))
      (list 'car))
     ((and (eq? parent 'cons) (eq? hole '_.2))

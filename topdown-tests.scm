@@ -71,6 +71,18 @@
    '(if (null? xs) ys (cons _.1 _.2)))
   '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
 
+(test
+  (synthesize-sketch
+   'append 2 '(xs ys)
+   '(((append '() '()) ())
+     ((append '(a) '(b)) (a b))
+     ((append '(g) '(h)) (g h))
+     ((append '(c d) '(e f)) (c d e f))
+     ((append '(w x y z) '(1 2 3 4)) (w x y z 1 2 3 4))
+     )
+   '(if _.1 _.2 (cons _.1 _.2)))
+  '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
+
 (todo
  "append"
   (synthesize
