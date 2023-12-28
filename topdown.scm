@@ -29,14 +29,13 @@
     ((and (eq? parent 'cons) (eq? hole '_.1))
      (list 'car))
     ((and (eq? parent 'cons) (eq? hole '_.2))
-     (list 'car ;;'cons
-           ))
+     (list 'car 'cons))
     (else #f)))
 
 (define (grams-arities all? parent hole)
   (let ((ps (grams parent hole)))
     (if ps
-        (filter (lambda (pa) (memq (car pa) ps)) arities)
+        (map (lambda (p) (assq p arities)) ps)
         (if all? arities '()))))
 
 (define (fill-hole hole parent fun-name arity formals)
