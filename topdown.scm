@@ -27,7 +27,7 @@
     ((and (eq? parent 'if) (eq? hole '_.3))
      (list 'cons 'cdr 'car))
     ((and (eq? parent 'cons) (eq? hole '_.1))
-     (list 'car))
+     (list 'car 'cons))
     ((and (eq? parent 'cons) (eq? hole '_.2))
      (list 'car 'cons))
     (else #f)))
