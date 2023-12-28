@@ -7,7 +7,7 @@
   '(((if a b c))))
 
 (test
-      (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y)) '(if (null? (cdr xs)) (car _.0) (last (cdr xs))))
+  (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y)) '(if (null? (cdr xs)) (car _.0) (last (cdr xs))))
   '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
 (test
@@ -28,7 +28,7 @@
 
 (todo
  "last"
- (synthesize 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y)))
+ (synthesize 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z) ((last '(x y z a)) a)))
  'TODO)
 
 (test

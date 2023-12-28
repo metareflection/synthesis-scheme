@@ -26,12 +26,10 @@
           (inc-random-choice (cdr xs)))))
 
 (define (random-expressions fun-name arity formals)
-  (list
-   (inc-random-choice
-    (append
-     formals
-     (map (lambda (x) `(car ,x)) formals)
-     (map (lambda (x) `(cdr ,x)) formals)))))
+  (append
+   formals
+   (map (lambda (x) `(car ,x)) formals)
+   (map (lambda (x) `(cdr ,x)) formals)))
 
 (define DONE '(DONE))
 
@@ -101,7 +99,7 @@
      (lambda (new-eng)
        (values #f max-ticks #f)))))
 
-(define (evaluate-score fun-name arity formals io* e)
+(define (evaluate-score fail? fun-name arity formals io* e)
   (call/cc
    (lambda (k)
      (length
@@ -116,13 +114,13 @@
                   (guard
                    (x (else (k -3)))
                    (let-values (((result ticks completed?)
-                                 (run-until-ticks-values 10000000 thunk)))
+                                 (run-until-ticks-values 100000 thunk)))
                      (if completed?
                          (if (eq? result HOLE)
                              HOLE
                              (if (equal? result expected)
                                  #t
-                                 (k -2)))
+                                 (if fail? (k -2) #f)))
                          (k -1)))))))
             io*))))))
 
@@ -133,16 +131,18 @@
       +
       (filter
        (lambda (x) (> x 0))
-       (map (lambda (e) (evaluate-score fun-name arity formals io* e)) r)))
+       (map (lambda (e) (evaluate-score #f fun-name arity formals io* e)) r)))
      (length r))))
 
 (define (merge-candidates fun-name arity formals io* next-expressions other-candidates)
-  (let ((next-candidates
-         (map (lambda (e)
-                (list e
-                      (evaluate-score fun-name arity formals io* e)
-                      (delay (rollout fun-name arity formals io* e))))
-              next-expressions)))
+  (let* ((next-candidates
+          (map (lambda (e)
+                 (list e
+                       (evaluate-score #t fun-name arity formals io* e)
+                       (delay (rollout fun-name arity formals io* e))))
+               next-expressions))
+         (next-candidates
+          (filter (lambda (es) (>= (cadr es) 0)) next-candidates)))
     (append other-candidates next-candidates)))
 
 (define (synthesize-iter fun-name arity formals io* candidates)
@@ -162,7 +162,7 @@
 (define (synthesize-sketch fun-name arity formals io* sketch)
   (synthesize-iter
    fun-name arity formals io*
-   (list (list sketch (evaluate-score fun-name arity formals io* sketch)))))
+   (list (list sketch (evaluate-score #t fun-name arity formals io* sketch)))))
 
 (define (synthesize fun-name arity formals io*)
   (synthesize-iter fun-name arity formals io* (list (list (make-hole) 0))))
