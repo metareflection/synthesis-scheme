@@ -93,5 +93,10 @@
                   (synthesize-iter fun-name arity formals io* other-candidates))
               (synthesize-iter fun-name arity formals io* (merge-candidates fun-name arity formals io* next-expressions other-candidates)))))))
 
+(define (synthesize-sketch fun-name arity formals io* sketch)
+  (synthesize-iter
+   fun-name arity formals io*
+   (list (list sketch (evaluate-score fun-name arity formals io* sketch)))))
+
 (define (synthesize fun-name arity formals io*)
   (synthesize-iter fun-name arity formals io* (list (list (make-hole) 0))))
