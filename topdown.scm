@@ -1,8 +1,8 @@
-(define (make-hole)
-  '_.0)
+(define (make-hole i)
+  (string->symbol (string-append "_." (number->string i))))
 
 (define (make-holes arity)
-  (map (lambda (_) (make-hole)) (iota arity)))
+  (map (lambda (i) (make-hole i)) (iota arity)))
 
 (define arities
   (list
@@ -12,10 +12,20 @@
    (list 'cdr 1)
    (list 'if 3)))
 
-(define (fill-hole fun-name arity formals)
+(define grams
+  (list
+   (list 'null? 'cdr)
+   (list 'car 'car 'cdr)
+   (list 'cdr 'car 'cdr)))
+
+(define (fill-hole hole parent fun-name arity formals)
   (append
    formals
-   (map (lambda (fa) (cons (car fa) (make-holes (cadr fa)))) arities)
+   (map (lambda (fa) (cons (car fa) (make-holes (cadr fa))))
+        (let ((p (assq parent grams)))
+          (if p
+              (filter (lambda (pa) (memq (car pa) (cdr p))) arities)
+              arities)))
    (list (cons fun-name (make-holes arity)))))
 
 (define (inc-random-choice xs)
@@ -35,8 +45,10 @@
 
 (define (fill-all-holes fun-name arity formals e)
   ;;(printf "Considering ~a.\n" e)
-  (let ((r (next-steps-f (lambda () (random-expressions fun-name arity formals))
-                         fun-name arity formals e)))
+  (let ((r (next-steps-f
+            #f
+            (lambda (hole parent) (random-expressions fun-name arity formals))
+            fun-name arity formals e)))
     (if (eq? DONE r)
         (list e)
         (apply append
@@ -44,22 +56,28 @@
 
 (define (next-steps fun-name arity formals e)
   (next-steps-f
-   (lambda () (fill-hole fun-name arity formals))
+   #f
+   (lambda (hole parent) (fill-hole hole parent fun-name arity formals))
    fun-name arity formals e))
 
-(define (next-steps-f thunk fun-name arity formals e)
+(define (next-steps-f parent thunk fun-name arity formals e)
   (cond
     ((hole? e)
-     (thunk))
+     (thunk e parent))
     ((pair? e)
-     (let ((sa (next-steps-f thunk fun-name arity formals (car e))))
-       (if (eq? DONE sa)
-           (let ((sd (next-steps-f thunk fun-name arity formals (cdr e))))
-             (if (eq? DONE sd)
-                 DONE
-                 (map (lambda (d) (cons (car e) d)) sd)))
-           (map (lambda (a) (cons a (cdr e))) sa))))
+     (list-next-steps-f (car e) thunk fun-name arity formals e))
     (else DONE)))
+
+(define (list-next-steps-f parent thunk fun-name arity formals e)
+  (if (null? e)
+      DONE
+      (let ((sa (next-steps-f parent thunk fun-name arity formals (car e))))
+        (if (eq? DONE sa)
+            (let ((sd (list-next-steps-f parent thunk fun-name arity formals (cdr e))))
+              (if (eq? DONE sd)
+                  DONE
+                  (map (lambda (d) (cons (car e) d)) sd)))
+           (map (lambda (a) (cons a (cdr e))) sa)))))
 
 (define (compare-candidates es1 es2)
   (let ((s1 (cadr es1))
@@ -165,4 +183,4 @@
    (list (list sketch (evaluate-score #t fun-name arity formals io* sketch)))))
 
 (define (synthesize fun-name arity formals io*)
-  (synthesize-iter fun-name arity formals io* (list (list (make-hole) 0))))
+  (synthesize-iter fun-name arity formals io* (list (list (make-hole 0) 0))))
