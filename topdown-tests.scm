@@ -22,10 +22,27 @@
   (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? (cdr xs)) (car xs) _.0))
   '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
+;; slow
+(test
+  (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? _.0) _.1 (last (cdr xs))))
+  '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
+
 (todo
  "last"
  (synthesize 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y)))
  'TODO)
+
+(test
+  (synthesize-sketch
+   'append 2 '(xs ys)
+   '(((append '() '()) ())
+     ((append '(a) '(b)) (a b))
+     ((append '(g) '(h)) (g h))
+     ((append '(c d) '(e f)) (c d e f))
+     ((append '(w x y z) '(1 2 3 4)) (w x y z 1 2 3 4))
+     )
+   '(if (null? xs) _.1 (cons (car xs) (append (cdr xs) ys))))
+  '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
 
 (todo
  "append"
