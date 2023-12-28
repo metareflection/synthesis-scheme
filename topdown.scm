@@ -2,7 +2,7 @@
   (string->symbol (string-append "_." (number->string i))))
 
 (define (make-holes arity)
-  (map (lambda (i) (make-hole i)) (iota arity)))
+  (map (lambda (i) (make-hole (+ 1 i))) (iota arity)))
 
 (define arities
   (list
@@ -12,19 +12,29 @@
    (list 'cdr 1)
    (list 'if 3)))
 
-(define grams
-  (list
-   (list 'null? 'cdr)
-   (list 'car 'car 'cdr)
-   (list 'cdr 'car 'cdr)))
+(define (grams parent hole)
+  (cond
+    ((eq? parent 'null?)
+     (list 'cdr))
+    ((eq? parent 'car)
+     (list 'car 'cdr))
+    ((eq? parent 'cdr)
+     (list 'car 'cdr))
+    ((and (eq? parent 'if) (eq? hole '_.1))
+     (list 'null?))
+    ((and (eq? parent 'if) (or (eq? hole '_.2) (eq? hole '_.3)))
+     (list 'car 'cdr cons))
+    ((eq? parent 'cons)
+     (list 'car 'cdr))
+    (else (list 'null? 'cons 'car 'cdr 'if))))
 
 (define (fill-hole hole parent fun-name arity formals)
   (append
    formals
    (map (lambda (fa) (cons (car fa) (make-holes (cadr fa))))
-        (let ((p (assq parent grams)))
-          (if p
-              (filter (lambda (pa) (memq (car pa) (cdr p))) arities)
+        (let ((ps (grams parent hole)))
+          (if ps
+              (filter (lambda (pa) (memq (car pa) ps)) arities)
               arities)))
    (list (cons fun-name (make-holes arity)))))
 

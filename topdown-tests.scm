@@ -19,11 +19,11 @@
   '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
 (test
-  (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? (cdr xs)) (car xs) _.0))
+  (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? (cdr xs)) (car xs) _.3))
   '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
 (test
- (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? _.0) _.1 (last (cdr xs))))
+ (synthesize-sketch 'last 1 '(xs) '(((last '(x)) x) ((last '(x y)) y) ((last '(x y z)) z)) '(if (null? _.1) _.2 (last (cdr xs))))
  '(((if (null? (cdr xs)) (car xs) (last (cdr xs))))))
 
 (todo
@@ -40,7 +40,7 @@
      ((append '(c d) '(e f)) (c d e f))
      ((append '(w x y z) '(1 2 3 4)) (w x y z 1 2 3 4))
      )
-   '(if (null? xs) _.1 (cons (car xs) (append (cdr xs) ys))))
+   '(if (null? xs) _.2 (cons (car xs) (append (cdr xs) ys))))
   '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
 
 (todo
