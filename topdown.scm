@@ -145,9 +145,9 @@
 (define (evaluate-score fail? fun-name arity formals io* e)
   (call/cc
    (lambda (k)
-     (length
-      (filter
-       (lambda (r) (eq? #t r))
+     (apply +
+      (map
+       (lambda (r) (if (eq? #t r) 1 (if (and (not fail?) (eq? #f r)) -1 0)))
        (map (lambda (io)
               (let ((input (car io))
                     (expected (cadr io)))

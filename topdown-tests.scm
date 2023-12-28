@@ -59,7 +59,7 @@
    '(if (null? xs) ys (cons (car xs) _.2)))
   '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
 
-(todo "append-stuck"
+(test
   (synthesize-sketch
    'append 2 '(xs ys)
    '(((append '() '()) ())
