@@ -24,8 +24,11 @@
      (list 'null?))
     ((and (eq? parent 'if) (or (eq? hole '_.2) (eq? hole '_.3)))
      (list 'car 'cdr 'cons))
-    ((eq? parent 'cons)
-     (list 'car 'cdr))
+    ((and (eq? parent 'cons) (eq? hole '_.1))
+     (list 'car))
+    ((and (eq? parent 'cons) (eq? hole '_.2))
+     (list 'car ;;'cons
+           ))
     (else #f)))
 
 (define (grams-arities all? parent hole)
