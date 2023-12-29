@@ -1,5 +1,5 @@
 (define rollout? #f)
-(define mcts-policy? #t)
+(define mcts? #t)
 
 (define (make-hole i)
   (string->symbol (string-append "_." (number->string i))))
@@ -207,11 +207,10 @@
                   (synthesize-iter fun-name arity formals io* other-candidates))
               (synthesize-iter fun-name arity formals io* (merge-candidates fun-name arity formals io* next-expressions other-candidates)))))))
 
-(define (mcts-policy-synthesize fun-name arity formals io* sketch)
+(define (mcts-synthesize fun-name arity formals io* sketch)
   (let ((n (length io*)))
     (define (child-finder node montecarlo)
-      (let* ((best-policy-value -10)
-             (es (next-steps fun-name arity formals (node-state node))))
+      (let ((es (next-steps fun-name arity formals (node-state node))))
         (if (eq? DONE es)
             (if (= n (evaluate-score #t fun-name arity formals io* (node-state node)))
                 (begin
@@ -219,25 +218,37 @@
                   (montecarlo-solution-set! montecarlo (node-state node)))
                 (node-update-win-value node -1.0))
             (let ((children
-                    (map
-                     (lambda (e)
-                       (let ((child (node-new e))
-                             (policy-value (exact->inexact (/ (evaluate-score #t fun-name arity formals io* e) n))))
-                         (node-policy-value-set! child policy-value)
-                         (set! best-policy-value (max best-policy-value policy-value))
-                         child))
-                     es)))
-              (node-add-children node children)
-              (node-update-win-value node best-policy-value)))))
+                   (map
+                    (lambda (cv)
+                      (if (> (cdr cv) 0.0)
+                          (node-policy-value-set! (car cv) (cdr cv)))
+                      (car cv))
+                    (filter
+                     (lambda (cv) (>= (cdr cv) 0.0))
+                     (map
+                      (lambda (e)
+                        (let ((child (node-new e)))
+                          (cons child (node-evaluator child montecarlo)))) es)))))
+              (if (null? children)
+                  (node-update-win-value node -1.0)
+                  (node-add-children node children))))))
+    (define (node-evaluator node montecarlo)
+      (let ((v (evaluate-score #t fun-name arity formals io* (node-state node))))
+        (if (= v 0)
+            0.0
+            (if (< v 0)
+                -1.0
+                (exact->inexact (/ v n))))))
     (let ((montecarlo (montecarlo-new (node-new sketch))))
       (montecarlo-child-finder-set! montecarlo child-finder)
+      (montecarlo-node-evaluator-set! montecarlo node-evaluator)
       (montecarlo-simulate montecarlo #f)
       (list (list (montecarlo-solution montecarlo))))))
 
 (define (synthesize-sketch fun-name arity formals io* sketch)
   (cond
-    (mcts-policy?
-     (mcts-policy-synthesize fun-name arity formals io* sketch))
+    (mcts?
+     (mcts-synthesize fun-name arity formals io* sketch))
     (else
      (synthesize-iter
       fun-name arity formals io*
@@ -245,7 +256,7 @@
 
 (define (synthesize fun-name arity formals io*)
   (cond
-    (mcts-policy?
-     (mcts-policy-synthesize fun-name arity formals io* (make-hole 0)))
+    (mcts?
+     (mcts-synthesize fun-name arity formals io* (make-hole 0)))
     (else
      (synthesize-iter fun-name arity formals io* (list (list (make-hole 0) 0))))))
