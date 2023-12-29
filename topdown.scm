@@ -119,9 +119,11 @@
                    (children
                     (map
                      (lambda (cv)
-                       (if (and (cdr cv) (> (cdr cv) 0.0))
-                           (node-policy-value-set! (car cv) (cdr cv))
-                           (node-policy-value-set! (car cv) min-score))
+                       (node-policy-value-set!
+                        (car cv)
+                        (if (and (cdr cv) (> (cdr cv) 0.0))
+                            (cdr cv)
+                            min-score))
                        (car cv))
                      nonnegative-cvs)))
               (if (null? children)
