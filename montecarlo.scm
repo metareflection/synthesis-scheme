@@ -34,22 +34,21 @@
     (node-random-best-child root-node root-node node-visits)))
 
 (define (montecarlo-make-exploratory-choice montecarlo)
-  (call/cc
-   (lambda (return)
-     (let* ((root-node (montecarlo-root-node montecarlo))
-            (children-visits (map node-visits (node-children root-node)))
-            (children-visit-probabilities
-             (map (lambda (visit) (exact->inexact (/ visit (node-visit root-node))))
-                  (node-children root-node)))
-            (random-probability (random 1.0))
-            (probabilities-already-counted 0.0))
-       (map
-        (lambda (i probability child)
-          (set! probabilities-already-counted (+ probabilities-already-counted probability))
-          (if (>= probabilities-already-counted random-probability)
-              (return child)))
-        (iota (length children-visit-probabilities)) children-visit-probabilities
-        (node-children root-node))))))
+  (let* ((root-node (montecarlo-root-node montecarlo))
+         (children-visits (map node-visits (node-children root-node)))
+         (children-visit-probabilities
+          (map (lambda (visit) (exact->inexact (/ visit (node-visit root-node))))
+               (node-children root-node)))
+         (random-probability (random 1.0)))
+    (let loop ((visit-probabilities children-visit-probabilities)
+               (children (node-children root-node))
+               (probabilities-already-counted 0.0))
+      (let* ((probability (car visit-probabilities))
+             (child (car children))
+             (p (+ probabilities-already-counted probability)))
+        (if (>= p random-probability)
+            child
+            (loop (cdr visit-probabilities) (cdr children) p))))))
 
 (define (node-preferred-child-until-not-expanded current-node root-node)
   (if (node-expanded current-node)
