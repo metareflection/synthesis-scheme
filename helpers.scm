@@ -2,6 +2,9 @@
 (define (io-args io) (cdar io))
 (define (io-output io) (cadr io))
 
+(define (choose lst)
+  (list-ref lst (random (length lst))))
+
 (define (read-from-string s)
   (read (open-string-input-port s)))
 

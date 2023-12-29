@@ -27,9 +27,6 @@
     (or b b)
     (not b)))
 
-(define (choose lst)
-  (list-ref lst (random (length lst))))
-
 (define (generate-tree-depth d ts rs t)
   (let ((os (cdr (assoc t ts))))
     (if (<= d 0)
