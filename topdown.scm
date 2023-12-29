@@ -107,18 +107,23 @@
                   (node-update-win-value node 1.0)
                   (montecarlo-solution-set! montecarlo (node-state node)))
                 (node-update-win-value node -1.0))
-            (let ((children
-                   (map
-                    (lambda (cv)
-                      (if (and (cdr cv) (> (cdr cv) 0.0))
-                          (node-policy-value-set! (car cv) (cdr cv)))
-                      (car cv))
+            (let* ((nonnegative-cvs
                     (filter
                      (lambda (cv) (or (not (cdr cv)) (>= (cdr cv) 0.0)))
                      (map
                       (lambda (e)
                         (let ((child (node-new e)))
-                          (cons child (node-evaluator child montecarlo)))) es)))))
+                          (cons child (node-evaluator child montecarlo))))
+                      es)))
+                   (min-score (apply min 1.0 (filter (lambda (x) x) (map cdr nonnegative-cvs))))
+                   (children
+                    (map
+                     (lambda (cv)
+                       (if (and (cdr cv) (> (cdr cv) 0.0))
+                           (node-policy-value-set! (car cv) (cdr cv))
+                           (node-policy-value-set! (car cv) min-score))
+                       (car cv))
+                     nonnegative-cvs)))
               (if (null? children)
                   (node-update-win-value node -1.0)
                   (node-add-children node children))))))
