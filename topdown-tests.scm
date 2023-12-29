@@ -1,3 +1,5 @@
+(random-seed 1000)
+
 (test
   (synthesize 'id 1 '(x) '(((id 1) 1) ((id 2) 2)))
   '((x)))

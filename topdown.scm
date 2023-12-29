@@ -115,15 +115,12 @@
                         (let ((child (node-new e)))
                           (cons child (node-evaluator child montecarlo))))
                       es)))
-                   (min-score (apply min 1.0 (filter (lambda (x) x) (map cdr nonnegative-cvs))))
+                   ;;(min-score (apply min 1.0 (filter (lambda (x) x) (map cdr nonnegative-cvs))))
                    (children
                     (map
                      (lambda (cv)
-                       (node-policy-value-set!
-                        (car cv)
-                        (if (and (cdr cv) (> (cdr cv) 0.0))
-                            (cdr cv)
-                            min-score))
+                       (if (and (cdr cv) (> (cdr cv) 0.0))
+                           (node-policy-value-set! (car cv) (cdr cv)))
                        (car cv))
                      nonnegative-cvs)))
               (if (null? children)
