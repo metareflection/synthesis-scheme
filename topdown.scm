@@ -220,11 +220,11 @@
             (let ((children
                    (map
                     (lambda (cv)
-                      (if (> (cdr cv) 0.0)
+                      (if (and (cdr cv) (> (cdr cv) 0.0))
                           (node-policy-value-set! (car cv) (cdr cv)))
                       (car cv))
                     (filter
-                     (lambda (cv) (>= (cdr cv) 0.0))
+                     (lambda (cv) (or (not (cdr cv)) (>= (cdr cv) 0.0)))
                      (map
                       (lambda (e)
                         (let ((child (node-new e)))
@@ -235,7 +235,7 @@
     (define (node-evaluator node montecarlo)
       (let ((v (evaluate-score #t fun-name arity formals io* (node-state node))))
         (if (= v 0)
-            0.0
+            0.0;; -- don't do rollouts: #f
             (if (< v 0)
                 -1.0
                 (exact->inexact (/ v n))))))
