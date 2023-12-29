@@ -83,7 +83,8 @@
    '(if _.1 _.2 (cons _.1 _.2)))
   '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
 
-(test
+;; TODO: why is this test with the sketch slower than full synthesis now?
+(time-test
  (synthesize-sketch
   'append 2 '(xs ys)
   '(((append '() '()) ())
