@@ -1,4 +1,4 @@
-# Synthesis in Scheme
+# Scheme Synthesis in Scheme
 
 - [`eval.scm`](eval.scm): evaluator
 - [`bottomup.scm`](bottomup.scm): bottom-up synthesizer
