@@ -15,7 +15,8 @@
         1
         (if (< (node-state node) -1000)
             -1
-            #f)))
+            0 ;; TODO: why can't this be #f?
+            )))
 
   (define montecarlo (montecarlo-new (node-new 0)))
   (montecarlo-child-finder-set! montecarlo child-finder)
@@ -25,6 +26,10 @@
 
   (let ()
     (define chosen-node (montecarlo-make-choice montecarlo))
+    (define exploratory-node (montecarlo-make-exploratory-choice montecarlo))
     (test
       (node-state chosen-node)
-      1)))
+      1)
+    (test
+      (not (not exploratory-node))
+      #t)))

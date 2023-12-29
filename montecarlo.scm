@@ -37,8 +37,8 @@
   (let* ((root-node (montecarlo-root-node montecarlo))
          (children-visits (map node-visits (node-children root-node)))
          (children-visit-probabilities
-          (map (lambda (visit) (exact->inexact (/ visit (node-visit root-node))))
-               (node-children root-node)))
+          (map (lambda (visit) (exact->inexact (/ visit (node-visits root-node))))
+               children-visits))
          (random-probability (random 1.0)))
     (let loop ((visit-probabilities children-visit-probabilities)
                (children (node-children root-node))
