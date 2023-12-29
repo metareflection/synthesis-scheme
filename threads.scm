@@ -11,8 +11,9 @@
              (random-seed (+ 1000 (* 5 i)))
              (let ((result (thunk)))
                (with-mutex m
-                 (set! done result)
-                 (when done (condition-signal c))))))
+                 (unless done
+                   (set! done result)
+                   (when done (condition-signal c)))))))
             (loop (+ i 1))))
       (condition-wait c m))
     done))
@@ -31,4 +32,3 @@
 (time-test
  (parallel-exe 10 thunk)
  '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
-
