@@ -71,6 +71,7 @@
                   DONE
                   (map (lambda (d) (cons (car e) d)) sd)))
            (map (lambda (a) (cons a (cdr e))) sa)))))
+(define EXCEPTION '(EXCEPTION))
 
 (define (evaluate-score fail? fun-name arity formals io* e)
   (call/cc
@@ -82,19 +83,22 @@
               (let ((input (car io))
                     (expected (cadr io)))
                 (let ((thunk (lambda ()
-                               (my-eval `(letrec ((,fun-name (lambda ,formals ,e)))
-                                           ,input)))))
-                  (guard
-                   (x (else (k -3)))
-                   (let-values (((result ticks completed?)
-                                 (run-until-ticks-values 100000 thunk)))
-                     (if completed?
-                         (if (eq? result HOLE)
-                             HOLE
-                             (if (equal? result expected)
-                                 #t
-                                 (if fail? (k -2) #f)))
-                         (k -1)))))))
+                               (guard
+                                (x (else EXCEPTION))
+                                (my-eval `(letrec ((,fun-name (lambda ,formals ,e)))
+                                            ,input))))))
+                  (let-values
+                      (((result ticks completed?)
+                        (run-until-ticks-values 100000 thunk)))
+                    (if completed?
+                        (if (eq? result EXCEPTION)
+                            (k -3)
+                            (if (eq? result HOLE)
+                                HOLE
+                                (if (equal? result expected)
+                                    #t
+                                    (if fail? (k -2) #f))))
+                        (k -1))))))
             io*))))))
 
 (define (mcts-synthesize fun-name arity formals io* sketch)
@@ -136,7 +140,7 @@
     (let ((montecarlo (montecarlo-new (node-new sketch))))
       (montecarlo-child-finder-set! montecarlo child-finder)
       (montecarlo-node-evaluator-set! montecarlo node-evaluator)
-      (montecarlo-simulate montecarlo 10000)
+      (montecarlo-simulate montecarlo #f)
       (let ((solution (montecarlo-solution montecarlo)))
         (if solution
             (list (list solution))
