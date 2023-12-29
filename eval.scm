@@ -30,6 +30,14 @@
    (equal? (closure-formals v1) (closure-formals v2))
    (equal? (closure-body v1) (closure-body v2))
    (equal? (closure-env v1) (closure-env v2))))
+(define (value-equal? v1 v2)
+  (cond
+    ((and (pair? v1) (pair? v2))
+     (and (value-equal? (car v1) (car v2))
+          (value-equal? (cdr v1) (cdr v2))))
+    ((and (closure? v1) (closure? v2))
+     (closure-equal? v1 v2))
+    (else (equal? v1 v2))))
 
 (define-record-type primitive (fields name proc))
 

@@ -88,7 +88,7 @@
        (cond
          [(null? xs) '()]
          [else (cons (f (car xs)) (map f (cdr xs)))]))))
-#;
+
 (test
   (play-computer-check recursion-pattern-list '(fs x) 'compose-list ex-io-compose-list)
   '(define compose-list

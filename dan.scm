@@ -216,11 +216,7 @@
    (lambda (x) (- x 1))))
 
 (define (arg-equal? arg v)
-  (let ((va (my-eval arg)))
-    (or (equal? va v)
-        (and (closure? v)
-             (closure? va)
-             (closure-equal? v va)))))
+  (value-equal? (my-eval arg) v))
 
 (define (search-io name predicate)
   (lambda (io)
