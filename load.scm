@@ -2,6 +2,7 @@
 (load "helpers.scm")
 (load "eval.scm")
 (load "barliman.scm")
+(load "montecarlo.scm")
 (load "topdown.scm")
 (load "bottomup.scm")
 (load "template.scm")

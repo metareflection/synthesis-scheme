@@ -39,7 +39,10 @@
          (children-visit-probabilities
           (map (lambda (visit) (exact->inexact (/ visit (node-visits root-node))))
                children-visits))
-         (random-probability (random 1.0)))
+         ;; TODO: in the original, total is 1.0
+         ;;  but it seems wrong, because parent node might be visited more than all children
+         (total (apply + children-visit-probabilities))
+         (random-probability (random total)))
     (let loop ((visit-probabilities children-visit-probabilities)
                (children (node-children root-node))
                (probabilities-already-counted 0.0))
@@ -75,7 +78,7 @@
       (let ((child-win-value ((montecarlo-node-evaluator montecarlo) child montecarlo)))
         (if child-win-value
             (node-update-win-value child child-win-value))
-        (if (node-is-scorable child)
+        (if (not (node-is-scorable child))
             (begin
               (montecarlo-random-rollout montecarlo child)
               (node-children-set! child '())))))
