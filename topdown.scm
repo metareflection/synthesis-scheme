@@ -136,8 +136,11 @@
     (let ((montecarlo (montecarlo-new (node-new sketch))))
       (montecarlo-child-finder-set! montecarlo child-finder)
       (montecarlo-node-evaluator-set! montecarlo node-evaluator)
-      (montecarlo-simulate montecarlo #f)
-      (list (list (montecarlo-solution montecarlo))))))
+      (montecarlo-simulate montecarlo 10000)
+      (let ((solution (montecarlo-solution montecarlo)))
+        (if solution
+            (list (list solution))
+            #f)))))
 
 (define (synthesize-sketch fun-name arity formals io* sketch)
   (mcts-synthesize fun-name arity formals io* sketch))
