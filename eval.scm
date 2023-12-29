@@ -25,6 +25,11 @@
   (cons x (cons 'val v)))
 
 (define-record-type closure (fields formals body env))
+(define (closure-equal? v1 v2)
+  (and
+   (equal? (closure-formals v1) (closure-formals v2))
+   (equal? (closure-body v1) (closure-body v2))
+   (equal? (closure-env v1) (closure-env v2))))
 
 (define-record-type primitive (fields name proc))
 

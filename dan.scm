@@ -216,7 +216,11 @@
    (lambda (x) (- x 1))))
 
 (define (arg-equal? arg v)
-  (equal? (my-eval arg) v))
+  (let ((va (my-eval arg)))
+    (or (equal? va v)
+        (and (closure? v)
+             (closure? va)
+             (closure-equal? v va)))))
 
 (define (search-io name predicate)
   (lambda (io)
@@ -294,11 +298,11 @@
     (define loop
       (case-lambda
         [(ticks proc name . more-things)
-         (let ((r (guard (x (else '()))
-                    (monitor ticks
-                             (lambda (monitored-solver)
-                               (apply monitored-solver args))
-                             proc name))))
+         (let ((r ;;guard (x (else '()))
+                (monitor ticks
+                         (lambda (monitored-solver)
+                           (apply monitored-solver args))
+                         proc name)))
            (if (not (null? r))
                r
                (apply loop more-things)))]

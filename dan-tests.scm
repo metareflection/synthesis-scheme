@@ -81,7 +81,6 @@
          ((null? xs) '())
          (else (cons (car xs) (cons (car xs) (stutter (cdr xs)))))))))
 
-#;
 (test
   (play-computer-check recursion-pattern-list-index1 '(f xs) 'map ex-io-map)
   '(define map
@@ -89,7 +88,6 @@
        (cond
          [(null? xs) '()]
          [else (cons (f (car xs)) (map f (cdr xs)))]))))
-
 #;
 (test
   (play-computer-check recursion-pattern-list '(fs x) 'compose-list ex-io-compose-list)
