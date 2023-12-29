@@ -72,15 +72,6 @@
                   (map (lambda (d) (cons (car e) d)) sd)))
            (map (lambda (a) (cons a (cdr e))) sa)))))
 
-(define run-until-ticks-values
-  (lambda (max-ticks thunk)
-    ((make-engine thunk)
-     max-ticks
-     (lambda (ticks value)
-       (values value (- max-ticks ticks) #t))
-     (lambda (new-eng)
-       (values #f max-ticks #f)))))
-
 (define (evaluate-score fail? fun-name arity formals io* e)
   (call/cc
    (lambda (k)

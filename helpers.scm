@@ -2,6 +2,15 @@
 (define (io-args io) (cdar io))
 (define (io-output io) (cadr io))
 
+(define run-until-ticks-values
+  (lambda (max-ticks thunk)
+    ((make-engine thunk)
+     max-ticks
+     (lambda (ticks value)
+       (values value (- max-ticks ticks) #t))
+     (lambda (new-eng)
+       (values #f max-ticks #f)))))
+
 (define (choose lst)
   (list-ref lst (random (length lst))))
 
