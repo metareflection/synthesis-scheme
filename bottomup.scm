@@ -173,10 +173,6 @@
              pieces))))
        (cdr (iota size)) (cdr (first-n size piecess)))))))
 
-(define (log x)
-  (pretty-print x)
-  x)
-
 (define (compute-new-pieces ops new-size piecess)
   (filter
    (lambda (x) x)
