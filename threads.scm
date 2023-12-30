@@ -27,8 +27,11 @@
        ((append '(g) '(h)) (g h))
        ((append '(c d) '(e f)) (c d e f))
        ((append '(w x y z) '(1 2 3 4)) (w x y z 1 2 3 4))
-       ))))
+       )
+     '(expansion-count . 20000))
+    )
+  )
 
 (time-test
- (parallel-exe 10 thunk)
+ (parallel-exe 3 thunk)
  '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))

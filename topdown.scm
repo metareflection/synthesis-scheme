@@ -97,8 +97,9 @@
                                 (if fail? (k -2) #f))))))))
             io*))))))
 
-(define (mcts-synthesize fun-name arity formals io* sketch)
-  (let ((n (length io*)))
+(define (mcts-synthesize fun-name arity formals io* sketch . options)
+  (let ((expansion-count (assoc-get #f 'expansion-count options))
+        (n (length io*)))
     (define (child-finder node montecarlo)
       (let ((es (next-steps fun-name arity formals (node-state node))))
         (if (eq? DONE es)
@@ -136,14 +137,14 @@
     (let ((montecarlo (montecarlo-new (node-new sketch))))
       (montecarlo-child-finder-set! montecarlo child-finder)
       (montecarlo-node-evaluator-set! montecarlo node-evaluator)
-      (montecarlo-simulate montecarlo #f)
+      (montecarlo-simulate montecarlo expansion-count)
       (let ((solution (montecarlo-solution montecarlo)))
         (if solution
             (list (list solution))
             #f)))))
 
-(define (synthesize-sketch fun-name arity formals io* sketch)
-  (mcts-synthesize fun-name arity formals io* sketch))
+(define (synthesize-sketch fun-name arity formals io* sketch . options)
+  (apply mcts-synthesize fun-name arity formals io* sketch options))
 
-(define (synthesize fun-name arity formals io*)
-  (mcts-synthesize fun-name arity formals io* (make-hole 0)))
+(define (synthesize fun-name arity formals io* . options)
+  (apply mcts-synthesize fun-name arity formals io* (make-hole 0) options))
