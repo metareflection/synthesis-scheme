@@ -60,13 +60,13 @@
     'apply1
     (lambda (v1 v2) (can-apply? v1 (list v2)))
     list
-    (lambda (v1 v2) (my-apply (lambda (x) x) v1 (list v2)))
+    (lambda (v1 v2) (my-apply DEFAULT_FUEL (lambda (x) x) v1 (list v2)))
     2)
    (make-op
     'apply
     can-apply?
     (lambda (e1 e2) `(apply ,e1 ,e2))
-    (lambda (v1 v2) (my-apply (lambda (x) x) v1 v2))
+    (lambda (v1 v2) (my-apply DEFAULT_FUEL (lambda (x) x) v1 v2))
     2)))
 
 (define (fill-bottomup fun-name formals io* . options)

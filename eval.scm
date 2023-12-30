@@ -1,3 +1,5 @@
+(define DEFAULT_FUEL 1000)
+
 (define (hole? e)
   (and (symbol? e)
        (let ((s (string->list (symbol->string e))))
@@ -56,12 +58,12 @@
                   (or (symbol? params)
                       (= (length params) (length args))))))))
 
-(define (my-apply k f args)
+(define (my-apply fuel k f args)
   (cond
     ((primitive? f)
      (apply (primitive-proc f) args))
     ((closure? f)
-     (eval-expr k
+     (eval-expr fuel k
       (closure-body f)
       (let ((params (closure-formals f)))
         (append
@@ -101,12 +103,15 @@
    (add-binding-prim 'negative? negative?)
    (add-binding-prim 'even? even?)
    (add-binding-prim 'odd? odd?)
-   (add-binding-prim 'apply (lambda (f args) (my-apply (lambda (x) x) f args)))
+   (add-binding-prim 'apply (lambda (f args) (my-apply DEFAULT_FUEL (lambda (x) x) f args)))
    ))
 
 (define HOLE '(UNKNOWN))
 
-(define (eval-expr k expr env)
+(define (eval-expr fuel k expr env)
+  (if (<= fuel 0)
+      (error 'eval-expr "ran out of fuel")
+      (set! fuel (- fuel 1)))
   (cond
     ((hole? expr)
      (k HOLE))
@@ -119,17 +124,17 @@
     ((tagged-expr? 'quote expr)
      (cadr expr))
     ((tagged-expr? 'if expr)
-     (if (eval-expr k (cadr expr) env)
-         (eval-expr k (caddr expr) env)
-         (eval-expr k (cadddr expr) env)))
+     (if (eval-expr fuel k (cadr expr) env)
+         (eval-expr fuel k (caddr expr) env)
+         (eval-expr fuel k (cadddr expr) env)))
     ((tagged-expr? 'cond expr)
      (cond
        ((null? (cdr expr))
         (error 'eval-expr "cond expression with no cases"))
        ((eq? (caadr expr) 'else)
-        (eval-expr k (cadadr expr) env))
+        (eval-expr fuel k (cadadr expr) env))
        (else
-        (eval-expr k
+        (eval-expr fuel k
          `(if ,(caadr expr)
               ,(cadadr expr)
               (cond ,@(cddr expr)))
@@ -137,15 +142,15 @@
     ((tagged-expr? 'and expr)
      (if (null? (cdr expr))
          #t
-         (and (eval-expr k (cadr expr) env)
-              (eval-expr k `(and ,@(cddr expr)) env))))
+         (and (eval-expr fuel k (cadr expr) env)
+              (eval-expr fuel k `(and ,@(cddr expr)) env))))
     ((tagged-expr? 'or expr)
      (if (null? (cdr expr))
          #f
-         (or (eval-expr k (cadr expr) env)
-             (eval-expr k `(or ,@(cddr expr)) env))))
+         (or (eval-expr fuel k (cadr expr) env)
+             (eval-expr fuel k `(or ,@(cddr expr)) env))))
     ((tagged-expr? 'assert expr)
-     (let ((r (eval-expr k (cadr expr) env)))
+     (let ((r (eval-expr fuel k (cadr expr) env)))
        (if r
            r
            (error 'eval-expr "assertion failed" expr))))
@@ -154,19 +159,19 @@
     ((tagged-expr? 'let expr)
      (let ((bindings (cadr expr))
            (body (caddr expr)))
-       (eval-expr k
+       (eval-expr fuel k
         body
         (append
-         (map (lambda (b) (add-binding (car b) (eval-expr k (cadr b) env))) bindings)
+         (map (lambda (b) (add-binding (car b) (eval-expr fuel k (cadr b) env))) bindings)
          env))))
     ((tagged-expr? 'letrec expr)
-     (eval-expr k
+     (eval-expr fuel k
       (letrec-body expr)
       (cons (cons (letrec-name expr) (cons 'rec (letrec-lambda expr))) env)))
     ((pair? expr)
-     (let ((f (eval-expr k (car expr) env))
-           (args (map (lambda (e) (eval-expr k e env)) (cdr expr))))
-       (my-apply k f args)))
+     (let ((f (eval-expr fuel k (car expr) env))
+           (args (map (lambda (e) (eval-expr fuel k e env)) (cdr expr))))
+       (my-apply fuel k f args)))
     (else (error 'eval-expr "unexpected expression" expr))))
 
 (define (lookup x env)
@@ -184,7 +189,7 @@
 (define (my-eval expr)
   (call/cc
    (lambda (k)
-     (eval-expr k expr global-env))))
+     (eval-expr DEFAULT_FUEL k expr global-env))))
 
 (define (make-my-closure expr env)
   (make-closure
