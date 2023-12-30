@@ -49,6 +49,40 @@
       (condition-wait c m)
       done)))
 
+(define (parallel-exe-engines-proper-exit n thunk)
+  (let ((m (make-mutex))
+        (c (make-condition))
+        (done #f))
+    (let ((dec-and-maybe-signal
+           (lambda ()
+             (set! n (- n 1))
+             (when (= n 0) (condition-signal c)))))
+      (with-mutex m
+        (let loop ((i 0))
+          (when (< i n)
+            (fork-thread
+             (lambda ()
+               (random-seed (+ 10000 (* 5 i)))
+               (let eng-loop ((eng (make-engine thunk)))
+                 (eng 10000
+                      (lambda (ticks value)
+                        (with-mutex m
+                          (if done
+                              (printf "already done ~a\n" i)
+                              (begin
+                                (printf "done thanks to ~a\n" i)
+                                (set! done value)))
+                          (dec-and-maybe-signal)))
+                      (lambda (new-eng)
+                        (if (with-mutex m done)
+                            (with-mutex m
+                              (printf "stopping engine ~a\n" i)
+                              (dec-and-maybe-signal))
+                            (eng-loop new-eng)))))))
+            (loop (+ i 1))))
+        (condition-wait c m)
+        done))))
+
 (define (test-// t parallel-exe)
   (printf "//-exe 10 ~a\n" t)
   (time (parallel-exe 10 (lambda () (let loop ((i 0)) (if (= i 100000000) 'done (loop (+ i 1))))))) ;; 1.8s
@@ -82,4 +116,5 @@
   )
 
 ;;(test-// "WITHOUT ENGINES" parallel-exe-no-engines)
-(test-// "WITH ENGINES" parallel-exe-engines)
+;;(test-// "WITH ENGINES" parallel-exe-engines)
+(test-// "WITH ENGINES" parallel-exe-engines-proper-exit)
