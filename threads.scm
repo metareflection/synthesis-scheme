@@ -28,7 +28,7 @@
                             (if done
                                 (debug-printf "already done ~a\n" i)
                                 (begin
-                                  (debug-printf "done thanks to ~a\n" i)
+                                  (debug-printf "done thanks to engine ~a\n" i)
                                   (set! done value)))
                             (dec-and-signal-if-last)))
                         (lambda (new-eng)
