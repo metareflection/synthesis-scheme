@@ -70,14 +70,15 @@
          )
         )
       )
-    (printf "//-3 for synthesizer ~a\n" t)
-    (time-test
-     (parallel-exe 3 thunk)
-     '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
-    (printf "//-10 for synthesizer ~a\n" t)
-    (time-test
-     (parallel-exe 10 thunk)
-     '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys)))))))
+    (let loop ((i 1))
+      (if (> i 10)
+          'done
+          (begin
+            (printf "//-~a for synthesizer ~a\n" i t)
+            (time-test
+             (parallel-exe i thunk)
+             '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys))))))
+            (loop (+ i 1))))))
   )
 
 ;;(test-// "WITHOUT ENGINES" parallel-exe-no-engines)
