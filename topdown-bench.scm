@@ -17,19 +17,8 @@
        (time-difference (current-time) start)))
    (iota n)))
 
-(define r
-  (benchmark
-   10
-   (lambda ()
-     (time-test
-       (synthesize
-        'append 2 '(xs ys)
-        '(((append '() '()) ())
-          ((append '(a) '(b)) (a b))
-          ((append '(g) '(h)) (g h))
-          ((append '(c d) '(e f)) (c d e f))
-          ((append '(w x y z) '(1 2 3 4)) (w x y z 1 2 3 4))
-          ))
-       '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys)))))))))
-
-(printf "~a\n" (stats r))
+(define (run-benchmark n thunk)
+  (let* ((r (benchmark n thunk))
+         (s (stats r)))
+    (printf "~a\n" s)
+    s))
