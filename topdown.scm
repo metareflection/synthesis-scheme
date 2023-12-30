@@ -87,18 +87,14 @@
                                 (x (else EXCEPTION))
                                 (my-eval `(letrec ((,fun-name (lambda ,formals ,e)))
                                             ,input))))))
-                  (let-values
-                      (((result ticks completed?)
-                        (run-until-ticks-values 100000 thunk)))
-                    (if completed?
-                        (if (eq? result EXCEPTION)
-                            (k -3)
-                            (if (eq? result HOLE)
-                                HOLE
-                                (if (equal? result expected)
-                                    #t
-                                    (if fail? (k -2) #f))))
-                        (k -1))))))
+                  (let ((result (thunk))) ;; TODO: deal with timeout
+                    (if (eq? result EXCEPTION)
+                        (k -3)
+                        (if (eq? result HOLE)
+                            HOLE
+                            (if (equal? result expected)
+                                #t
+                                (if fail? (k -2) #f))))))))
             io*))))))
 
 (define (mcts-synthesize fun-name arity formals io* sketch)
