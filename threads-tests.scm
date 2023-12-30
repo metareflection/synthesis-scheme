@@ -1,6 +1,8 @@
 (load "load.scm")
 (load "threads.scm")
 
+(set! DEBUG-THREADS #t)
+
 (define setup-thunk
   (lambda (i)
     (random-seed (+ 100000 (* 5 i)))

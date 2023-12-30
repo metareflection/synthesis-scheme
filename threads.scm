@@ -1,6 +1,6 @@
 ;; inspired by slide 10 of https://web.archive.org/web/20170626072601/http://www.ccs.neu.edu/events/wand-symposium/talks/mitchfest-09-dybvig.pdf
 
-(define DEBUG-THREADS #t)
+(define DEBUG-THREADS #f)
 
 (define (debug-printf . args)
   (if DEBUG-THREADS
