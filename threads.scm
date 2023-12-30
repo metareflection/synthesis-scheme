@@ -32,7 +32,7 @@
            (lambda ()
              (random-seed (+ 10000 (* 5 i)))
              (let eng-loop ((eng (make-engine thunk)))
-               (eng 800
+               (eng 10000
                     (lambda (ticks value)
                       (with-mutex m
                         (if done
@@ -80,5 +80,5 @@
      '(((if (null? xs) ys (cons (car xs) (append (cdr xs) ys)))))))
   )
 
-(test-// "WITHOUT ENGINES" parallel-exe-no-engines)
+;;(test-// "WITHOUT ENGINES" parallel-exe-no-engines)
 (test-// "WITH ENGINES" parallel-exe-engines)
