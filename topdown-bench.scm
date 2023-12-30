@@ -10,14 +10,16 @@
     (list u s (apply min ds) (apply max ds))))
 
 (define (benchmark n thunk)
-  (map
-   (lambda (i)
-     (printf "RUN ~a\n" i)
-     (let ((start (current-time)))
-       (let* ((r (thunk))
-              (t (time-difference (current-time) start)))
-         (list t r))))
-   (iota n)))
+  (let ((count 1))
+    (map
+     (lambda (i)
+       (printf "RUN ~a\n" count)
+       (set! count (+ count 1))
+       (let ((start (current-time)))
+         (let* ((r (thunk))
+                (t (time-difference (current-time) start)))
+           (list t r))))
+     (iota n))))
 
 (define (run-benchmark n thunk)
   (let* ((r (benchmark n thunk))

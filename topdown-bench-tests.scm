@@ -15,7 +15,7 @@
         ((append '(c d) '(e f)) (c d e f))
         ((append '(w x y z) '(1 2 3 4)) (w x y z 1 2 3 4))
         )
-      '(expansion-count . 50000)
+      '(expansion-count . 100000)
       ))))
 
 (define setup-thunk
