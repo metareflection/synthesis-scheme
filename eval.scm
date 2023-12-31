@@ -109,9 +109,10 @@
 (define HOLE '(UNKNOWN))
 
 (define (eval-expr fuel k expr env)
-  (if (<= fuel 0)
-      (error 'eval-expr "ran out of fuel")
-      (set! fuel (- fuel 1)))
+  (when fuel
+    (if (<= fuel 0)
+        (error 'eval-expr "ran out of fuel")
+        (set! fuel (- fuel 1))))
   (cond
     ((hole? expr)
      (k HOLE))
