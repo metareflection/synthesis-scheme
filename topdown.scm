@@ -111,6 +111,12 @@ for this pattern
               (exists (lambda (e) (match-form? 'cdr e)) (cdr rec-call))))))
 (define all-dan-patterns (list dan-pattern0? dan-pattern1? dan-pattern2? dan-pattern3?))
 
+(define (compute-dan-score fun-name arity formals e)
+  (/ (apply + (map
+               (lambda (pattern?) (if (pattern? fun-name arity formals e) 1.0 0.0))
+               all-dan-patterns))
+     (length all-dan-patterns)))
+
 (define (evaluate-score fail? fun-name arity formals io* e)
   (call/cc
    (lambda (k)
@@ -159,12 +165,12 @@ for this pattern
                     (map
                      (lambda (cv)
                        (let ((e (node-state (car cv))))
-                         (let ((dan-score (/ (apply + (map
-                                                       (lambda (pattern?) (if (pattern? fun-name arity formals e) 1.0 0.0))
-                                                       all-dan-patterns))
-                                             (length all-dan-patterns)))
+                         (let ((dan-score (compute-dan-score fun-name arity formals e))
                                (eval-score (or (cdr cv) 0.0)))
                            (let ((score (+ (* 0.8 eval-score) (* 0.20 dan-score))))
+                             #;
+                             (when (> score 0)
+                               (printf "~a ~a ~a ~a\n" e score eval-score dan-score))
                              (node-policy-value-set! (car cv) score))))
                        (car cv))
                      nonnegative-cvs)))

@@ -1,3 +1,4 @@
+(define dan? #f)
 (define rollout? #f)
 
 (define (inc-random-choice xs)
@@ -39,11 +40,18 @@
     (or
      (> s1 s2)
      (and
-      rollout?
+      dan?
       (>= s1 0)
       (>= s2 0)
       (= s1 s2)
-      (> (force (caddr es1)) (force (caddr es2)))))))
+      (let ((t1 (force (caddr es1)))
+            (t2 (force (caddr es2))))
+        (or
+         (> t1 t2)
+         (and
+          rollout?
+          (= t1 t2)
+          (> (force (cadddr es1)) (force (cadddr es2))))))))))
 
 (define (find-best candidates so-far)
   (if (null? candidates)
@@ -78,6 +86,7 @@
           (map (lambda (e)
                  (list e
                        (evaluate-score #t fun-name arity formals io* e)
+                       (delay (compute-dan-score fun-name arity formals e))
                        (delay (rollout fun-name arity formals io* e))))
                next-expressions))
          (next-candidates
