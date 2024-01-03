@@ -1,4 +1,14 @@
-(random-seed 1000)
+;;(random-seed 1000)
+
+(test
+  (andmap (lambda (pattern?) (pattern? 'last 1 '(xs) '(if (null? (cdr xs)) (car xs) (last (cdr xs)))))
+           all-dan-patterns)
+  #t)
+
+(test
+  (andmap (lambda (pattern?) (pattern? 'append 2 '(xs ys) '(if (null? xs) ys (cons (car xs) (append (cdr xs) ys)))))
+           all-dan-patterns)
+  #t)
 
 (test
   (synthesize 'id 1 '(x) '(((id 1) 1) ((id 2) 2)))

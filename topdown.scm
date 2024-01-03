@@ -73,6 +73,44 @@
            (map (lambda (a) (cons a (cdr e))) sa)))))
 (define EXCEPTION '(EXCEPTION))
 
+(define (match-form? head e)
+  (and (pair? e) (eq? head (car e))))
+
+(define (contain-form? head e)
+  (cond
+    ((hole? e)
+     #f)
+    ((pair? e)
+     (or (and (eq? head (car e)) e)
+         (exists (lambda (e) (contain-form? head e)) e)))
+    (else #f)))
+
+(define (if-cond x) (cadr x))
+(define (if-else x) (cadddr x))
+
+#|
+for this pattern
+(if (null? h)
+    h
+    (h ... (,fun-name h ... (cdr h) h ...) h ...))
+|#
+(define (dan-pattern0? fun-name arity formals e)
+  (match-form? 'if e))
+(define (dan-pattern1? fun-name arity formals e)
+  (and (match-form? 'if e)
+       (match-form? 'null? (if-cond e))))
+(define (dan-pattern2? fun-name arity formals e)
+  (and (match-form? 'if e)
+       (match-form? 'null? (if-cond e))
+       (contain-form? fun-name (if-else e))))
+(define (dan-pattern3? fun-name arity formals e)
+  (and (match-form? 'if e)
+       (match-form? 'null? (if-cond e))
+       (let ((rec-call (contain-form? fun-name (if-else e))))
+         (and rec-call
+              (exists (lambda (e) (match-form? 'cdr e)) (cdr rec-call))))))
+(define all-dan-patterns (list dan-pattern0? dan-pattern1? dan-pattern2? dan-pattern3?))
+
 (define (evaluate-score fail? fun-name arity formals io* e)
   (call/cc
    (lambda (k)
@@ -120,8 +158,13 @@
                    (children
                     (map
                      (lambda (cv)
-                       (if (and (cdr cv) (> (cdr cv) 0.0))
-                           (node-policy-value-set! (car cv) (cdr cv)))
+                       (let ((e (node-state (car cv))))
+                         (let ((dan-score (/ (apply + (map
+                                                       (lambda (pattern?) (if (pattern? fun-name arity formals e) 1.0 0.0))
+                                                       all-dan-patterns))
+                                             (length all-dan-patterns)))
+                               (eval-score (or (cdr cv) 0.0)))
+                           (node-policy-value-set! (car cv) (* 0.5 (+ dan-score eval-score)))))
                        (car cv))
                      nonnegative-cvs)))
               (if (null? children)
