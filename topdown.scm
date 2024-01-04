@@ -184,7 +184,10 @@ for this pattern
                        (let ((e (node-state (car cv))))
                          (let ((dan-score (compute-dan-score fun-name arity formals e))
                                (eval-score (or (cdr cv) 0.0)))
-                           (let ((score (+ (* 0.8 eval-score) (* 0.20 dan-score))))
+                           (let ((score
+                                  (if (> eval-score 0.0)
+                                      (* 0.5 (+ eval-score dan-score))
+                                      (+ 0.5 (* 0.5 dan-score)))))
                              #;
                              (when (> score 0)
                                (printf "~a ~a ~a ~a\n" e score eval-score dan-score))
