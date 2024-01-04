@@ -14,7 +14,7 @@
   (synthesize 'id 1 '(x) '(((id 1) 1) ((id 2) 2)))
   '((x)))
 
-(test
+(todo "not dan-like"
   (synthesize 'foo 3 '(a b c) '(((foo #t 1 2) 1) ((foo #f 1 2) 2)))
   '(((if a b c))))
 

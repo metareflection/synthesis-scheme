@@ -74,15 +74,15 @@
 (define EXCEPTION '(EXCEPTION))
 
 (define (match-form? head e)
-  (and (pair? e) (eq? head (car e))))
+  (or (hole? e) (and (pair? e) (eq? head (car e)))))
 
-(define (contain-form? head e)
+(define (contain-form? head e hole-case)
   (cond
     ((hole? e)
-     #f)
+     hole-case)
     ((pair? e)
      (or (and (eq? head (car e)) e)
-         (exists (lambda (e) (contain-form? head e)) e)))
+         (exists (lambda (e) (contain-form? head e hole-case)) e)))
     (else #f)))
 
 (define (if-cond x) (cadr x))
@@ -98,32 +98,37 @@ for this pattern
   (match-form? 'if e))
 (define (dan-pattern1? fun-name arity formals e)
   (and (match-form? 'if e)
-       (match-form? 'null? (if-cond e))))
+       (or (hole? e) (match-form? 'null? (if-cond e)))))
 (define (dan-pattern2? fun-name arity formals e)
   (and (match-form? 'if e)
-       (match-form? 'null? (if-cond e))
-       (contain-form? fun-name (if-else e))))
+       (or (hole? e)
+           (and (match-form? 'null? (if-cond e))
+                (contain-form? fun-name (if-else e) #t)))))
 (define (dan-pattern3? fun-name arity formals e)
   (and (match-form? 'if e)
-       (match-form? 'null? (if-cond e))
-       (let ((rec-call (contain-form? fun-name (if-else e))))
-         (and rec-call
-              (exists (lambda (e) (match-form? 'cdr e)) (cdr rec-call))))))
+       (or (hole? e)
+           (and
+            (match-form? 'null? (if-cond e))
+            (let ((rec-call (contain-form? fun-name (if-else e) #t)))
+              (and rec-call
+                   (if (eq? rec-call #t)
+                       #t
+                       (exists (lambda (e) (match-form? 'cdr e)) (cdr rec-call)))))))))
 (define all-dan-patterns (list dan-pattern0? dan-pattern1? dan-pattern2? dan-pattern3?))
 (define (neg-dan-pattern0? fun-name arity formals e)
-  (let ((call (contain-form? fun-name e)))
+  (let ((call (contain-form? fun-name e #f)))
     (if call
-        (exists (lambda (e) (contain-form? fun-name e)) (cdr call))
+        (exists (lambda (e) (contain-form? fun-name e #f)) (cdr call))
         #f)))
 (define all-neg-dan-patterns (list neg-dan-pattern0?))
 
 (define (compute-dan-score fun-name arity formals e)
   (if (exists (lambda (neg-pattern?) (neg-pattern? fun-name arity formals e)) all-neg-dan-patterns)
       -1.0
+      #;
       (if (exists (lambda (pos-pattern?) (pos-pattern? fun-name arity formals e)) all-dan-patterns)
           1.0
           0.0)
-      #;
       (/ (apply + (map
                    (lambda (pattern?) (if (pattern? fun-name arity formals e) 1.0 0.0))
                    all-dan-patterns))
