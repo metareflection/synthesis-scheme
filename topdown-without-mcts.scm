@@ -1,4 +1,4 @@
-(define dan? #f)
+(define dan? #t)
 (define rollout? #f)
 
 (define (inc-random-choice xs)

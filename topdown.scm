@@ -110,12 +110,24 @@ for this pattern
          (and rec-call
               (exists (lambda (e) (match-form? 'cdr e)) (cdr rec-call))))))
 (define all-dan-patterns (list dan-pattern0? dan-pattern1? dan-pattern2? dan-pattern3?))
+(define (neg-dan-pattern0? fun-name arity formals e)
+  (let ((call (contain-form? fun-name e)))
+    (if call
+        (exists (lambda (e) (contain-form? fun-name e)) (cdr call))
+        #f)))
+(define all-neg-dan-patterns (list neg-dan-pattern0?))
 
 (define (compute-dan-score fun-name arity formals e)
-  (/ (apply + (map
-               (lambda (pattern?) (if (pattern? fun-name arity formals e) 1.0 0.0))
-               all-dan-patterns))
-     (length all-dan-patterns)))
+  (if (exists (lambda (neg-pattern?) (neg-pattern? fun-name arity formals e)) all-neg-dan-patterns)
+      -1.0
+      (if (exists (lambda (pos-pattern?) (pos-pattern? fun-name arity formals e)) all-dan-patterns)
+          1.0
+          0.0)
+      #;
+      (/ (apply + (map
+                   (lambda (pattern?) (if (pattern? fun-name arity formals e) 1.0 0.0))
+                   all-dan-patterns))
+         (length all-dan-patterns))))
 
 (define (evaluate-score fail? fun-name arity formals io* e)
   (call/cc
